@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'task_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -21,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (result.docs.isNotEmpty) {
         print("Successfully logged in with email: ${emailController.text}");
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => TasksPage())); // Navigera till TasksPage
       } else {
         print("Login failed. Invalid email or password.");
       }
