@@ -114,13 +114,13 @@ class HomePage extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/register');
+                Navigator.of(context).pushNamed('/register');
               },
               child: Text('Register'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushReplacementNamed('/login');
+                Navigator.of(context).pushNamed('/login');
               },
               child: Text('Login'),
             ),

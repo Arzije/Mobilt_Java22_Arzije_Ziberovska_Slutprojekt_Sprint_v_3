@@ -6,7 +6,7 @@
     <application
         android:label="flutter_sp_test"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/favicon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
