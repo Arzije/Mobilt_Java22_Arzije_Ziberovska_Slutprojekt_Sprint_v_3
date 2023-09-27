@@ -1,19 +1,131 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class TasksPage extends StatefulWidget {
+class TaskPage extends StatefulWidget {
   @override
-  _TasksPageState createState() => _TasksPageState();
+  _TaskPageState createState() => _TaskPageState();
 }
 
-class _TasksPageState extends State<TasksPage> {
+class _TaskPageState extends State<TaskPage> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  DateTime? selectedDate;
+
+  Future<void> _addTask() async {
+    if (titleController.text.isNotEmpty &&
+        descriptionController.text.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('tasks').add({
+        'title': titleController.text,
+        'description': descriptionController.text,
+        'createdAt': Timestamp.now(),
+        'deadline': selectedDate?.toUtc(),
+      });
+
+      // Rensa textfälten efter att ha lagt till uppgiften
+      titleController.clear();
+      descriptionController.clear();
+
+// Rensa textfälten och datumvalet efter att ha lagt till uppgiften
+      titleController.clear();
+      descriptionController.clear();
+      setState(() {
+        selectedDate = null;
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    // Funktion för att visa dataväljaren
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tasks'),
-      ),
-      body: Center(
-        child: Text('Tasks will be displayed here'),
+    return GestureDetector(
+      // <-- Lägg till detta här
+      onTap: () {
+        FocusScope.of(context)
+            .unfocus(); // Detta kommer att gömma tangentbordet
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: Text('Tasks'),
+        ),
+        // Resten av din kod för body och andra delar av Scaffold...
+        body: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: <Widget>[
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                hintText: 'Task Title',
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
+              decoration: InputDecoration(
+                hintText: 'Task Description',
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _selectDate(context), // Visa dataväljaren
+              child: Text(selectedDate == null
+                  ? 'Select deadline'
+                  : 'Deadline: ${selectedDate!.toLocal().toString().split(' ')[0]}'),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _addTask,
+              child: Text('Add Task'),
+            ),
+            SizedBox(height: 20),
+            StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('tasks').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final tasks = snapshot.data!.docs;
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(tasks[index]['title']),
+                      subtitle: Text(tasks[index]['description']),
+                      trailing: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(tasks[index]['createdAt'].toDate().toString()),
+                          SizedBox(height: 4),
+                          Text(tasks[index]['deadline'] != null
+                              ? 'Deadline: ${tasks[index]['deadline'].toDate().toString()}'
+                              : 'No deadline'),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

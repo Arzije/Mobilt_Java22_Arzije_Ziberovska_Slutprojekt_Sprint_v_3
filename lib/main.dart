@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
 
 import 'login_page.dart';
 import 'registration_page.dart';
+
+import 'task_model.dart';
+import 'task_page.dart';
+import 'completed_task_page.dart';
 
 
 void main() async {
@@ -20,23 +25,24 @@ enum AppRoutes {
   home,
   register,
   login,
+  tasks,
+  completedTasks,
 }
 
 class MyApp extends StatelessWidget {
+  final _routerDelegate = AppRouterDelegate();
+  final _routeInformationParser = AppRouteInformationParser();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => HomePage(),
-        '/register': (context) => RegisterPage(),
-        '/login': (context) => LoginPage(),
-      },
+      routerDelegate: _routerDelegate,
+      routeInformationParser: _routeInformationParser,
     );
   }
 }
@@ -61,6 +67,10 @@ class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
         return RouteInformation(location: '/register');
       case AppRoutes.login:
         return RouteInformation(location: '/login');
+      case AppRoutes.tasks:
+        return RouteInformation(location: '/tasks');
+      case AppRoutes.completedTasks:
+        return RouteInformation(location: '/completedTasks');
       default:
         return RouteInformation(location: '/');
     }
@@ -84,7 +94,9 @@ class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, P
       pages: [
         MaterialPage(child: HomePage()), // Default page
         if (_currentRoute == AppRoutes.register) MaterialPage(child: RegisterPage()),
-        if (_currentRoute == AppRoutes.login) MaterialPage(child: LoginPage())
+        if (_currentRoute == AppRoutes.login) MaterialPage(child: LoginPage()),
+        if (_currentRoute == AppRoutes.tasks) MaterialPage(child: TaskPage()),
+        if (_currentRoute == AppRoutes.completedTasks) MaterialPage(child: CompletedTasksPage()),
       ],
       onPopPage: (route, result) {
         if (!route.didPop(result)) {
@@ -100,6 +112,7 @@ class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, P
   @override
   Future<void> setNewRoutePath(AppRoutes route) async {
     _currentRoute = route;
+    notifyListeners();
   }
 }
 
@@ -114,13 +127,13 @@ class HomePage extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/register');
+                (Router.of(context).routerDelegate as AppRouterDelegate).setNewRoutePath(AppRoutes.register);
               },
               child: Text('Register'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/login');
+                (Router.of(context).routerDelegate as AppRouterDelegate).setNewRoutePath(AppRoutes.login);
               },
               child: Text('Login'),
             ),
