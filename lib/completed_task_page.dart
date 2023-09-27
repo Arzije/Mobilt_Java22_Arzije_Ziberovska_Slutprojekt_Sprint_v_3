@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class CompletedTasksPage extends StatelessWidget {
   @override
@@ -31,13 +32,14 @@ class CompletedTasksPage extends StatelessWidget {
                 trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(completedTasks[index]['createdAt']
-                        .toDate()
-                        .toString()),
+                    Text('Created: ${DateFormat('HH:mm yyyy-MM-dd').format(completedTasks[index]['createdAt'].toDate())}'
+                    ),
                     SizedBox(height: 4),
-                    Text(completedTasks[index]['deadline'] != null
-                        ? 'Deadline: ${completedTasks[index]['deadline'].toDate().toString()}'
-                        : 'No deadline'),
+                    Text(
+                        completedTasks[index]['deadline'] is Timestamp
+                            ? 'Deadline: ${(completedTasks[index]['deadline'] as Timestamp).toDate().toString().split(' ')[0]}'
+                            : 'No deadline'
+                    ),
                   ],
                 ),
               );

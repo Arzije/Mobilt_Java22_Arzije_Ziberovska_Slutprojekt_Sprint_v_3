@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 import 'completed_task_page.dart';
 
@@ -19,7 +20,7 @@ class _TaskPageState extends State<TaskPage> {
       await FirebaseFirestore.instance.collection('tasks').add({
         'title': titleController.text,
         'description': descriptionController.text,
-        'createdAt': Timestamp.now(),
+        'createdAt': DateFormat('HH:mm').format(DateTime.now()), // Formaterar till HH:mm-format
         'deadline': selectedDate?.toUtc(),
         'isCompleted': false,
       });
@@ -60,15 +61,17 @@ class _TaskPageState extends State<TaskPage> {
         appBar: AppBar(
           title: Text('Tasks'),
           actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.check),
+            TextButton(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => CompletedTasksPage()),
                 );
               },
-              tooltip: 'View Completed Tasks',
-            )
+              child: Text('Completed Tasks'),
+              style: TextButton.styleFrom(
+                primary: Colors.purpleAccent, // Detta sätter textfärgen till vit
+              ),
+            ),
           ],
         ),
         body: ListView(
@@ -101,8 +104,10 @@ class _TaskPageState extends State<TaskPage> {
             ),
             SizedBox(height: 20),
             StreamBuilder<QuerySnapshot>(
-              stream:
-              FirebaseFirestore.instance.collection('tasks').where('isCompleted', isEqualTo: false).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('tasks')
+                  .where('isCompleted', isEqualTo: false)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
@@ -121,17 +126,23 @@ class _TaskPageState extends State<TaskPage> {
                       trailing: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(tasks[index]['createdAt'].toDate().toString()),
+                          Text('Created: ${DateFormat('HH:mm yyyy-MM-dd').format(tasks[index]['createdAt'].toDate())}'
+                          ),
                           SizedBox(height: 4),
-                          Text(tasks[index]['deadline'] != null
-                              ? 'Deadline: ${tasks[index]['deadline'].toDate().toString()}'
-                              : 'No deadline'),
+                          Text(
+                              tasks[index]['deadline'] is Timestamp
+                                  ? 'Deadline: ${(tasks[index]['deadline'] as Timestamp).toDate().toString().split(' ')[0]}'
+                                  : 'No deadline'
+                          ),
                         ],
                       ),
                       leading: Checkbox(
                         value: tasks[index]['isCompleted'],
                         onChanged: (bool? newValue) async {
-                          await FirebaseFirestore.instance.collection('tasks').doc(tasks[index].id).update({
+                          await FirebaseFirestore.instance
+                              .collection('tasks')
+                              .doc(tasks[index].id)
+                              .update({
                             'isCompleted': newValue,
                           });
                           setState(() {}); // Uppdatera UI
