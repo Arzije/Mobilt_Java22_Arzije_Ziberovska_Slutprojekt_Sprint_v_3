@@ -1,26 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CompletedTasksPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Completed Tasks')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('List of completed tasks will go here!'),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('tasks')
+            .where('isCompleted', isEqualTo: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Go Back'),
-            ),
-          ],
-        ),
+          final completedTasks = snapshot.data!.docs;
+
+          if (completedTasks.isEmpty) {
+            return Center(child: Text('No completed tasks yet.'));
+          }
+
+          return ListView.builder(
+            itemCount: completedTasks.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(completedTasks[index]['title']),
+                subtitle: Text(completedTasks[index]['description']),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(completedTasks[index]['createdAt']
+                        .toDate()
+                        .toString()),
+                    SizedBox(height: 4),
+                    Text(completedTasks[index]['deadline'] != null
+                        ? 'Deadline: ${completedTasks[index]['deadline'].toDate().toString()}'
+                        : 'No deadline'),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
+
+

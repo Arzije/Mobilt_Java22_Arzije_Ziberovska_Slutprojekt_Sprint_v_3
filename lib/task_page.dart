@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'completed_task_page.dart';
+
 class TaskPage extends StatefulWidget {
   @override
   _TaskPageState createState() => _TaskPageState();
@@ -19,15 +21,13 @@ class _TaskPageState extends State<TaskPage> {
         'description': descriptionController.text,
         'createdAt': Timestamp.now(),
         'deadline': selectedDate?.toUtc(),
+        'isCompleted': false,
       });
 
       // Rensa textfälten efter att ha lagt till uppgiften
       titleController.clear();
       descriptionController.clear();
 
-// Rensa textfälten och datumvalet efter att ha lagt till uppgiften
-      titleController.clear();
-      descriptionController.clear();
       setState(() {
         selectedDate = null;
       });
@@ -51,7 +51,6 @@ class _TaskPageState extends State<TaskPage> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // <-- Lägg till detta här
       onTap: () {
         FocusScope.of(context)
             .unfocus(); // Detta kommer att gömma tangentbordet
@@ -60,8 +59,18 @@ class _TaskPageState extends State<TaskPage> {
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: Text('Tasks'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.check),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => CompletedTasksPage()),
+                );
+              },
+              tooltip: 'View Completed Tasks',
+            )
+          ],
         ),
-        // Resten av din kod för body och andra delar av Scaffold...
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: <Widget>[
@@ -93,7 +102,7 @@ class _TaskPageState extends State<TaskPage> {
             SizedBox(height: 20),
             StreamBuilder<QuerySnapshot>(
               stream:
-                  FirebaseFirestore.instance.collection('tasks').snapshots(),
+              FirebaseFirestore.instance.collection('tasks').where('isCompleted', isEqualTo: false).snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
@@ -118,6 +127,15 @@ class _TaskPageState extends State<TaskPage> {
                               ? 'Deadline: ${tasks[index]['deadline'].toDate().toString()}'
                               : 'No deadline'),
                         ],
+                      ),
+                      leading: Checkbox(
+                        value: tasks[index]['isCompleted'],
+                        onChanged: (bool? newValue) async {
+                          await FirebaseFirestore.instance.collection('tasks').doc(tasks[index].id).update({
+                            'isCompleted': newValue,
+                          });
+                          setState(() {}); // Uppdatera UI
+                        },
                       ),
                     );
                   },
