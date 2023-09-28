@@ -7,15 +7,19 @@ import 'registration_page.dart';
 import 'task_page.dart';
 import 'completed_task_page.dart';
 
+// Huvudfunktionen som kör appen
 void main() async {
+  // Initialisera Flutter widgets
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialisera Firebase med de angivna alternativen
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp( MyApp());
+  runApp(MyApp());
 }
 
+// Enum för att hantera appens rutter
 enum AppRoutes {
   home,
   register,
@@ -42,6 +46,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Parser klass för att omvandla ruttinformation till en AppRoutes enum
 class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
   @override
   Future<AppRoutes> parseRouteInformation(RouteInformation routeInformation) async {
@@ -72,6 +77,7 @@ class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
   }
 }
 
+// Delegera klass för att hantera ruttbyten i appen
 class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRoutes> {
   final GlobalKey<NavigatorState> navigatorKey;
 
@@ -87,7 +93,7 @@ class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, P
     return Navigator(
       key: navigatorKey,
       pages: [
-        MaterialPage(child: HomePage()), // Default page
+        MaterialPage(child: HomePage()),
         if (_currentRoute == AppRoutes.register) MaterialPage(child: RegisterPage()),
         if (_currentRoute == AppRoutes.login) MaterialPage(child: LoginPage()),
         if (_currentRoute == AppRoutes.tasks) MaterialPage(child: TaskPage()),
@@ -111,6 +117,7 @@ class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, P
   }
 }
 
+// Startsida med knappar för att navigera till registrering och inloggning
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -124,13 +131,13 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 (Router.of(context).routerDelegate as AppRouterDelegate).setNewRoutePath(AppRoutes.register);
               },
-              child: Text('Register'),
+              child: Text('Registrera'),
             ),
             ElevatedButton(
               onPressed: () {
                 (Router.of(context).routerDelegate as AppRouterDelegate).setNewRoutePath(AppRoutes.login);
               },
-              child: Text('Login'),
+              child: Text('Logga in'),
             ),
           ],
         ),
@@ -138,4 +145,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-

@@ -6,21 +6,23 @@ import 'package:intl/intl.dart';
 
 import 'completed_task_page.dart';
 
+// StatefulWidget för att hantera uppgifter.
 class TaskPage extends StatefulWidget {
   @override
   _TaskPageState createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
+  // Kontroller för att hantera inmatning av uppgiftstitel och beskrivning.
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
+  // Variabler för att hantera valt datum och sprint.
   DateTime? selectedDate;
-
   String? selectedSprint;
   final List<String> sprints = ["Sprint 1", "Sprint 2", "Sprint 3"];
 
-
+  // Funktion för att lägga till en ny uppgift i databasen.
   Future<void> _addTask() async {
     if (titleController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty) {
@@ -33,6 +35,7 @@ class _TaskPageState extends State<TaskPage> {
         'isCompleted': false,
       });
 
+      // Rensa kontrollerna efter att en uppgift har lagts till.
       titleController.clear();
       descriptionController.clear();
 
@@ -43,6 +46,7 @@ class _TaskPageState extends State<TaskPage> {
     }
   }
 
+  // Funktion för att visa en datepicker och låta användaren välja ett datum.
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -62,20 +66,22 @@ class _TaskPageState extends State<TaskPage> {
 
     return GestureDetector(
       onTap: () {
+        // Dölj tangentbordet när användaren trycker någonstans på skärmen.
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('Tasks'),
+          title: Text('Uppgifter'),
           actions: <Widget>[
+            // Knapp för att navigera till sidan med avklarade uppgifter.
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => CompletedTasksPage()),
                 );
               },
-              child: Text('Completed Tasks'),
+              child: Text('Avklarade Uppgifter'),
               style: TextButton.styleFrom(
                 primary: Colors.purpleAccent,
               ),
@@ -90,9 +96,10 @@ class _TaskPageState extends State<TaskPage> {
             else
               ..._buildLandscapeTextFields(),
 
+            // Dropdown för att låta användaren välja en sprint.
             DropdownButton<String>(
               value: selectedSprint,
-              hint: Text("Select a sprint"),
+              hint: Text("Välj en sprint"),
               onChanged: (String? newValue) {
                 setState(() {
                   selectedSprint = newValue;
@@ -106,18 +113,21 @@ class _TaskPageState extends State<TaskPage> {
               }).toList(),
             ),
             SizedBox(height: 16),
+            // Knapp för att låta användaren välja ett deadline.
             ElevatedButton(
               onPressed: () => _selectDate(context),
               child: Text(selectedDate == null
-                  ? 'Select deadline'
+                  ? 'Välj deadline'
                   : 'Deadline: ${selectedDate!.toLocal().toString().split(' ')[0]}'),
             ),
             SizedBox(height: 16),
+            // Knapp för att lägga till en ny uppgift.
             ElevatedButton(
               onPressed: _addTask,
-              child: Text('Add Task'),
+              child: Text('Lägg till Uppgift'),
             ),
             SizedBox(height: 20),
+            // Stream för att lyssna på ändringar i uppgifter som inte är avklarade.
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('tasks')
@@ -141,17 +151,18 @@ class _TaskPageState extends State<TaskPage> {
                         children: [
                           Text(tasks[index]['description']),
                           SizedBox(height: 4),
-                          Text('Sprint: ${tasks[index]['sprint'] ?? 'None'}'),
+                          Text('Sprint: ${tasks[index]['sprint'] ?? 'Ingen'}'),
                         ],
                       ),
                       trailing: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Created: ${DateFormat('yyyy-MM-dd, HH:mm').format((tasks[index]['createdAt'] as Timestamp).toDate())}'),
+                          Text('Skapad: ${DateFormat('yyyy-MM-dd, HH:mm').format((tasks[index]['createdAt'] as Timestamp).toDate())}'),
                           SizedBox(height: 4),
                           Text('Deadline: ${DateFormat('yyyy-MM-dd').format((tasks[index]['deadline'] as Timestamp).toDate())}'),
                         ],
                       ),
+                      // Checkbox för att markera en uppgift som avklarad.
                       leading: Checkbox(
                         value: tasks[index]['isCompleted'],
                         onChanged: (bool? newValue) async {
@@ -175,6 +186,7 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
+  // Widgets för att visa textfält i porträttläge.
   List<Widget> _buildPortraitTextFields() {
     return [
       Padding(
@@ -182,7 +194,7 @@ class _TaskPageState extends State<TaskPage> {
         child: TextField(
           controller: titleController,
           decoration: InputDecoration(
-            hintText: 'Task Title',
+            hintText: 'Uppgiftstitel',
             contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
@@ -194,7 +206,7 @@ class _TaskPageState extends State<TaskPage> {
       TextField(
         controller: descriptionController,
         decoration: InputDecoration(
-          hintText: 'Task Description',
+          hintText: 'Uppgiftsbeskrivning',
           contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
@@ -206,7 +218,7 @@ class _TaskPageState extends State<TaskPage> {
     ];
   }
 
-
+  // Widgets för att visa textfält i landskapsläge.
   List<Widget> _buildLandscapeTextFields() {
     return [
       Row(
@@ -215,7 +227,7 @@ class _TaskPageState extends State<TaskPage> {
             child: TextField(
               controller: titleController,
               decoration: InputDecoration(
-                hintText: 'Task Title',
+                hintText: 'Uppgiftstitel',
               ),
             ),
           ),
@@ -224,7 +236,7 @@ class _TaskPageState extends State<TaskPage> {
             child: TextField(
               controller: descriptionController,
               decoration: InputDecoration(
-                hintText: 'Task Description',
+                hintText: 'Uppgiftsbeskrivning',
               ),
             ),
           ),
@@ -233,5 +245,4 @@ class _TaskPageState extends State<TaskPage> {
       SizedBox(height: 16),
     ];
   }
-
 }
