@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +14,13 @@ class TaskPage extends StatefulWidget {
 class _TaskPageState extends State<TaskPage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  // final TextEditingController sprintController = TextEditingController();
+
   DateTime? selectedDate;
+
+  String? selectedSprint;
+  final List<String> sprints = ["Sprint 1", "Sprint 2", "Sprint 3"]; // You can extend this list
+
 
   Future<void> _addTask() async {
     if (titleController.text.isNotEmpty &&
@@ -20,17 +28,20 @@ class _TaskPageState extends State<TaskPage> {
       await FirebaseFirestore.instance.collection('tasks').add({
         'title': titleController.text,
         'description': descriptionController.text,
-        'createdAt': DateFormat('HH:mm').format(DateTime.now()), // Formaterar till HH:mm-format
+        'createdAt': DateTime.now().toUtc(), // Formaterar till HH:mm-format
         'deadline': selectedDate?.toUtc(),
+        'sprint': selectedSprint,
         'isCompleted': false,
       });
 
       // Rensa textfälten efter att ha lagt till uppgiften
       titleController.clear();
       descriptionController.clear();
+      // sprintController.clear();
 
       setState(() {
         selectedDate = null;
+        selectedSprint = null;
       });
     }
   }
@@ -91,6 +102,22 @@ class _TaskPageState extends State<TaskPage> {
               ),
             ),
             SizedBox(height: 16),
+            DropdownButton<String>(  // ADDED
+              value: selectedSprint,
+              hint: Text("Select a sprint"),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedSprint = newValue;
+                });
+              },
+              items: sprints.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _selectDate(context), // Visa dataväljaren
               child: Text(selectedDate == null
@@ -121,19 +148,22 @@ class _TaskPageState extends State<TaskPage> {
                   itemCount: tasks.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      title: Text(tasks[index]['title']),
-                      subtitle: Text(tasks[index]['description']),
+                      subtitle: Column(  // ADDED: Wrap the subtitle in a Column
+                        crossAxisAlignment: CrossAxisAlignment.start, // ADDED
+                        children: [  // ADDED
+                          Text(tasks[index]['description']),
+                          SizedBox(height: 4),  // ADDED
+                          Text('Sprint: ${tasks[index]['sprint'] ?? 'None'}'),  // ADDED: Display the sprint
+                        ],
+                      ),
                       trailing: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Created: ${DateFormat('HH:mm yyyy-MM-dd').format(tasks[index]['createdAt'].toDate())}'
-                          ),
+                          Text('Created: ${DateFormat('yyyy-MM-dd, HH:mm').format((tasks[index]['createdAt'] as Timestamp).toDate())}'),
+
                           SizedBox(height: 4),
-                          Text(
-                              tasks[index]['deadline'] is Timestamp
-                                  ? 'Deadline: ${(tasks[index]['deadline'] as Timestamp).toDate().toString().split(' ')[0]}'
-                                  : 'No deadline'
-                          ),
+
+                          Text('Deadline: ${DateFormat('yyyy-MM-dd').format((tasks[index]['deadline'] as Timestamp).toDate())}'),
                         ],
                       ),
                       leading: Checkbox(
