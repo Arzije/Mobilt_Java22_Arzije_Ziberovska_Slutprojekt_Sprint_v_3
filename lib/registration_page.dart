@@ -16,8 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       DocumentReference userRef = await firestore.collection('users').add({
         'email': emailController.text,
-        'password': passwordController.text, // Note: Storing plain passwords is not recommended!
-        // Add any other user attributes you want to save here
+        'password': passwordController.text,
       });
       print("User added with ID: ${userRef.id}");
     } catch (e) {

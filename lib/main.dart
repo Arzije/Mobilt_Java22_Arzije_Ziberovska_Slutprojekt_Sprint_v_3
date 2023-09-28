@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:firebase_core/firebase_core.dart';
-
 import 'firebase_options.dart';
 
 import 'login_page.dart';
 import 'registration_page.dart';
-
-import 'task_model.dart';
 import 'task_page.dart';
 import 'completed_task_page.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

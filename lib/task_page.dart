@@ -14,12 +14,11 @@ class TaskPage extends StatefulWidget {
 class _TaskPageState extends State<TaskPage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  // final TextEditingController sprintController = TextEditingController();
 
   DateTime? selectedDate;
 
   String? selectedSprint;
-  final List<String> sprints = ["Sprint 1", "Sprint 2", "Sprint 3"]; // You can extend this list
+  final List<String> sprints = ["Sprint 1", "Sprint 2", "Sprint 3"];
 
 
   Future<void> _addTask() async {
@@ -28,16 +27,14 @@ class _TaskPageState extends State<TaskPage> {
       await FirebaseFirestore.instance.collection('tasks').add({
         'title': titleController.text,
         'description': descriptionController.text,
-        'createdAt': DateTime.now().toUtc(), // Formaterar till HH:mm-format
+        'createdAt': DateTime.now().toUtc(),
         'deadline': selectedDate?.toUtc(),
         'sprint': selectedSprint,
         'isCompleted': false,
       });
 
-      // Rensa textfälten efter att ha lagt till uppgiften
       titleController.clear();
       descriptionController.clear();
-      // sprintController.clear();
 
       setState(() {
         selectedDate = null;
@@ -47,7 +44,6 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    // Funktion för att visa dataväljaren
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
@@ -62,10 +58,11 @@ class _TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+
     return GestureDetector(
       onTap: () {
-        FocusScope.of(context)
-            .unfocus(); // Detta kommer att gömma tangentbordet
+        FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -80,7 +77,7 @@ class _TaskPageState extends State<TaskPage> {
               },
               child: Text('Completed Tasks'),
               style: TextButton.styleFrom(
-                primary: Colors.purpleAccent, // Detta sätter textfärgen till vit
+                primary: Colors.purpleAccent,
               ),
             ),
           ],
@@ -88,21 +85,12 @@ class _TaskPageState extends State<TaskPage> {
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: <Widget>[
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                hintText: 'Task Title',
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(
-                hintText: 'Task Description',
-              ),
-            ),
-            SizedBox(height: 16),
-            DropdownButton<String>(  // ADDED
+            if (orientation == Orientation.portrait)
+              ..._buildPortraitTextFields()
+            else
+              ..._buildLandscapeTextFields(),
+
+            DropdownButton<String>(
               value: selectedSprint,
               hint: Text("Select a sprint"),
               onChanged: (String? newValue) {
@@ -119,7 +107,7 @@ class _TaskPageState extends State<TaskPage> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => _selectDate(context), // Visa dataväljaren
+              onPressed: () => _selectDate(context),
               child: Text(selectedDate == null
                   ? 'Select deadline'
                   : 'Deadline: ${selectedDate!.toLocal().toString().split(' ')[0]}'),
@@ -148,21 +136,19 @@ class _TaskPageState extends State<TaskPage> {
                   itemCount: tasks.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      subtitle: Column(  // ADDED: Wrap the subtitle in a Column
-                        crossAxisAlignment: CrossAxisAlignment.start, // ADDED
-                        children: [  // ADDED
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(tasks[index]['description']),
-                          SizedBox(height: 4),  // ADDED
-                          Text('Sprint: ${tasks[index]['sprint'] ?? 'None'}'),  // ADDED: Display the sprint
+                          SizedBox(height: 4),
+                          Text('Sprint: ${tasks[index]['sprint'] ?? 'None'}'),
                         ],
                       ),
                       trailing: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('Created: ${DateFormat('yyyy-MM-dd, HH:mm').format((tasks[index]['createdAt'] as Timestamp).toDate())}'),
-
                           SizedBox(height: 4),
-
                           Text('Deadline: ${DateFormat('yyyy-MM-dd').format((tasks[index]['deadline'] as Timestamp).toDate())}'),
                         ],
                       ),
@@ -175,7 +161,7 @@ class _TaskPageState extends State<TaskPage> {
                               .update({
                             'isCompleted': newValue,
                           });
-                          setState(() {}); // Uppdatera UI
+                          setState(() {});
                         },
                       ),
                     );
@@ -188,4 +174,64 @@ class _TaskPageState extends State<TaskPage> {
       ),
     );
   }
+
+  List<Widget> _buildPortraitTextFields() {
+    return [
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: TextField(
+          controller: titleController,
+          decoration: InputDecoration(
+            hintText: 'Task Title',
+            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+          maxLines: 1,
+        ),
+      ),
+      TextField(
+        controller: descriptionController,
+        decoration: InputDecoration(
+          hintText: 'Task Description',
+          contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        maxLines: 3,
+      ),
+      SizedBox(height: 16),
+    ];
+  }
+
+
+  List<Widget> _buildLandscapeTextFields() {
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: titleController,
+              decoration: InputDecoration(
+                hintText: 'Task Title',
+              ),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              controller: descriptionController,
+              decoration: InputDecoration(
+                hintText: 'Task Description',
+              ),
+            ),
+          ),
+        ],
+      ),
+      SizedBox(height: 16),
+    ];
+  }
+
 }

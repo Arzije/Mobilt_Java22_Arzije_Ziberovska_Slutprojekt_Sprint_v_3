@@ -9,7 +9,6 @@ class Task {
 
   Task({required this.id, required this.title, required this.description, required this.creationDate, required this.deadline});
 
-  // Konvertera från Firestore
   factory Task.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Task(
@@ -21,7 +20,6 @@ class Task {
     );
   }
 
-  // Konvertera till Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'title': title,
