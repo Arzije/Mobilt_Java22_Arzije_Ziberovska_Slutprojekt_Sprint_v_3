@@ -74,7 +74,6 @@ class _TaskPageState extends State<TaskPage> {
         appBar: AppBar(
           title: Text('Uppgifter'),
           actions: <Widget>[
-            // Knapp för att navigera till sidan med avklarade uppgifter.
             TextButton(
               onPressed: () {
                 Navigator.of(context).push(
@@ -95,8 +94,6 @@ class _TaskPageState extends State<TaskPage> {
               ..._buildPortraitTextFields()
             else
               ..._buildLandscapeTextFields(),
-
-            // Dropdown för att låta användaren välja en sprint.
             DropdownButton<String>(
               value: selectedSprint,
               hint: Text("Välj en sprint"),
@@ -113,7 +110,6 @@ class _TaskPageState extends State<TaskPage> {
               }).toList(),
             ),
             SizedBox(height: 16),
-            // Knapp för att låta användaren välja ett deadline.
             ElevatedButton(
               onPressed: () => _selectDate(context),
               child: Text(selectedDate == null
@@ -121,7 +117,6 @@ class _TaskPageState extends State<TaskPage> {
                   : 'Deadline: ${selectedDate!.toLocal().toString().split(' ')[0]}'),
             ),
             SizedBox(height: 16),
-            // Knapp för att lägga till en ny uppgift.
             ElevatedButton(
               onPressed: _addTask,
               child: Text('Lägg till Uppgift'),
@@ -162,7 +157,6 @@ class _TaskPageState extends State<TaskPage> {
                           Text('Deadline: ${DateFormat('yyyy-MM-dd').format((tasks[index]['deadline'] as Timestamp).toDate())}'),
                         ],
                       ),
-                      // Checkbox för att markera en uppgift som avklarad.
                       leading: Checkbox(
                         value: tasks[index]['isCompleted'],
                         onChanged: (bool? newValue) async {

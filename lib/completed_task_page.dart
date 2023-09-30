@@ -37,15 +37,12 @@ class CompletedTasksPage extends StatelessWidget {
                 trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // Visa när uppgiften skapades.
                     Text('Skapad: ${DateFormat('HH:mm yyyy-MM-dd').format(completedTasks[index]['createdAt'].toDate())}'
                     ),
                     SizedBox(height: 4),
                     Text(
                         completedTasks[index]['deadline'] is Timestamp
-                        // Om en tidsfrist är satt, visa den.
                             ? 'Deadline: ${(completedTasks[index]['deadline'] as Timestamp).toDate().toString().split(' ')[0]}'
-                        // Annars meddela att ingen tidsfrist är satt.
                             : 'Ingen deadline'
                     ),
                   ],

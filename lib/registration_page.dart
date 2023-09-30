@@ -38,25 +38,21 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Textfält för e-postinmatning.
             TextField(
               controller: emailController,
               decoration: InputDecoration(labelText: 'Email'),
             ),
-            // Textfält för lösenordsinmatning med dolt lösenord.
             TextField(
               controller: passwordController,
               decoration: InputDecoration(labelText: 'Lösenord'),
               obscureText: true,
             ),
             SizedBox(height: 20),
-            // Knapp för att påbörja registreringsprocessen.
             ElevatedButton(
               onPressed: registerUser,
               child: Text('Registrera'),
             ),
             SizedBox(height: 20),
-            // Knapp för att gå tillbaka till föregående sida.
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();

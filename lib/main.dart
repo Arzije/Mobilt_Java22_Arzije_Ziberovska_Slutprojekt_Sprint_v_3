@@ -9,9 +9,9 @@ import 'completed_task_page.dart';
 
 // Huvudfunktionen som kör appen
 void main() async {
-  // Initialisera Flutter widgets
+  // Säkerställer att Flutter widgets är initialiserade
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialisera Firebase med de angivna alternativen
+  // Initialiserar Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -19,7 +19,7 @@ void main() async {
   runApp(MyApp());
 }
 
-// Enum för att hantera appens rutter
+// Definierar rutter i appen
 enum AppRoutes {
   home,
   register,
@@ -29,13 +29,16 @@ enum AppRoutes {
 }
 
 class MyApp extends StatelessWidget {
+  // Skapar instanser av routerDelegate och routeInformationParser
   final _routerDelegate = AppRouterDelegate();
   final _routeInformationParser = AppRouteInformationParser();
 
   @override
   Widget build(BuildContext context) {
+    // Definierar en MaterialApp som använder router-API för navigation
     return MaterialApp.router(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Flutter Slutprojekt',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -46,10 +49,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Parser klass för att omvandla ruttinformation till en AppRoutes enum
+// Parserklass för att omvandla ruttinformation (URL) till en AppRoutes enum
 class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
   @override
   Future<AppRoutes> parseRouteInformation(RouteInformation routeInformation) async {
+    // Returnerar motsvarande enum-värde baserat på URL
     switch (routeInformation.location) {
       case '/register':
         return AppRoutes.register;
@@ -61,6 +65,7 @@ class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
   }
 
   @override
+  // Omvandlar en AppRoutes enum till motsvarande URL
   RouteInformation restoreRouteInformation(AppRoutes route) {
     switch (route) {
       case AppRoutes.register:
@@ -77,42 +82,56 @@ class AppRouteInformationParser extends RouteInformationParser<AppRoutes> {
   }
 }
 
-// Delegera klass för att hantera ruttbyten i appen
+// Delegatklass för att hantera ruttbyten i appen
 class AppRouterDelegate extends RouterDelegate<AppRoutes> with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRoutes> {
   final GlobalKey<NavigatorState> navigatorKey;
-
-  AppRoutes? _currentRoute;
+  // Stack av rutter som representerar appens navigationshistorik
+  List<AppRoutes> _routeStack = [AppRoutes.home];
 
   AppRouterDelegate() : navigatorKey = GlobalKey<NavigatorState>();
 
   @override
-  AppRoutes? get currentConfiguration => _currentRoute;
+  // Returnerar den nuvarande aktiva rutten
+  AppRoutes? get currentConfiguration => _routeStack.last;
 
   @override
+  // Bygger appens Navigator baserat på den nuvarande rutten
   Widget build(BuildContext context) {
     return Navigator(
       key: navigatorKey,
-      pages: [
-        MaterialPage(child: HomePage()),
-        if (_currentRoute == AppRoutes.register) MaterialPage(child: RegisterPage()),
-        if (_currentRoute == AppRoutes.login) MaterialPage(child: LoginPage()),
-        if (_currentRoute == AppRoutes.tasks) MaterialPage(child: TaskPage()),
-        if (_currentRoute == AppRoutes.completedTasks) MaterialPage(child: CompletedTasksPage()),
-      ],
+      pages: _routeStack.map((route) {
+        // Returnerar motsvarande sida för varje rutt
+        switch (route) {
+          case AppRoutes.register:
+            return MaterialPage(child: RegisterPage());
+          case AppRoutes.login:
+            return MaterialPage(child: LoginPage());
+          case AppRoutes.tasks:
+            return MaterialPage(child: TaskPage());
+          case AppRoutes.completedTasks:
+            return MaterialPage(child: CompletedTasksPage());
+          default:
+            return MaterialPage(child: HomePage());
+        }
+      }).toList(),
+      // Hanterar "pop"-operationer (t.ex. bakåt-navigering)
       onPopPage: (route, result) {
         if (!route.didPop(result)) {
           return false;
         }
-        _currentRoute = null;
-        notifyListeners();
+        if (_routeStack.length > 1) {
+          _routeStack.removeLast();
+          notifyListeners();
+        }
         return true;
       },
     );
   }
 
   @override
+  // Lägger till en ny rutt till stacken och uppdaterar UI
   Future<void> setNewRoutePath(AppRoutes route) async {
-    _currentRoute = route;
+    _routeStack.add(route);
     notifyListeners();
   }
 }

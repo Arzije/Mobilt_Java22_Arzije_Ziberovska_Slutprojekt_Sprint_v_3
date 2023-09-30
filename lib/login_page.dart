@@ -47,25 +47,21 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Textfält för e-postinmatning.
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(labelText: 'Email'),
                 ),
-                // Textfält för lösenordsinmatning med dolt lösenord.
                 TextField(
                   controller: passwordController,
                   decoration: InputDecoration(labelText: 'Lösenord'),
                   obscureText: true,
                 ),
                 SizedBox(height: 20),
-                // Knapp för att påbörja inloggningsprocessen.
                 ElevatedButton(
                   onPressed: loginUser,
                   child: Text('Logga in'),
                 ),
                 SizedBox(height: 20),
-                // Knapp för att gå tillbaka till startsidan.
                 ElevatedButton(
                   onPressed: () {
                     (Router.of(context).routerDelegate as AppRouterDelegate).setNewRoutePath(AppRoutes.home);
